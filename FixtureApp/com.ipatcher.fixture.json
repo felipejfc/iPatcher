@@ -1,0 +1,19 @@
+{
+  "appName": "iPatcherFixture",
+  "bundleID": "com.ipatcher.fixture",
+  "createdAt": "2026-03-09T13:00:00Z",
+  "enabled": true,
+  "id": "9F7AFDCC-5206-4D4E-A694-9A5972BC9A11",
+  "name": "iPatcher Fixture",
+  "patches": [
+    {
+      "enabled": true,
+      "id": "B5A3A9E3-33D1-4E9B-BB78-4F74C7726D2C",
+      "name": "Flip fixture target",
+      "offset": 8,
+      "pattern": "29 42 89 d2 69 58 b6 f2 00 00 80 52 c0 03 5f d6",
+      "replacement": "20 00 80 52"
+    }
+  ],
+  "updatedAt": "2026-03-09T13:00:00Z"
+}

@@ -1,0 +1,10 @@
+Package: com.ipatcher.app
+Name: iPatcher
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Runtime memory patcher for iOS apps. SIMD-accelerated hex pattern scanning with wildcard support.
+Maintainer: iPatcher
+Author: iPatcher
+Section: Tweaks
+Depends: firmware (>= 15.0)
+Icon: file:///var/jb/Applications/iPatcher.app/AppIcon180.png

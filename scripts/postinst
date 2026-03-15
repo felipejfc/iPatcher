@@ -1,0 +1,62 @@
+#!/bin/bash
+# iPatcher post-install — runs as root via dpkg
+
+# Patch storage directory
+mkdir -p /var/jb/var/mobile/Library/iPatcher/patches
+chown mobile:mobile /var/jb/var/mobile/Library/iPatcher
+chown mobile:mobile /var/jb/var/mobile/Library/iPatcher/patches
+chmod 755 /var/jb/var/mobile/Library/iPatcher/patches
+
+# Substrate directory permissions
+SUBSTRATE_DIR="/var/jb/Library/MobileSubstrate/DynamicLibraries"
+TWEAK="$SUBSTRATE_DIR/iPatcher.dylib"
+FILTER="$SUBSTRATE_DIR/iPatcher.plist"
+mkdir -p "$SUBSTRATE_DIR"
+chown root:wheel /var/jb/Library/MobileSubstrate
+chown root:wheel "$SUBSTRATE_DIR"
+chmod 755 /var/jb/Library/MobileSubstrate "$SUBSTRATE_DIR"
+
+if [ -f "$TWEAK" ]; then
+    chown root:wheel "$TWEAK"
+    chmod 755 "$TWEAK"
+    if command -v ldid &>/dev/null; then
+        ldid -S "$TWEAK" || true
+    fi
+fi
+
+if [ -f "$FILTER" ]; then
+    chown root:wheel "$FILTER"
+    chmod 644 "$FILTER"
+fi
+
+TWEAKLOADER="/var/jb/usr/lib/TweakLoader.dylib"
+if [ -f "$TWEAKLOADER" ]; then
+    chown root:wheel "$TWEAKLOADER"
+    chmod 755 "$TWEAKLOADER"
+    if command -v ldid &>/dev/null; then
+        ldid -S "$TWEAKLOADER" || true
+    fi
+fi
+
+# Setuid root helper — this is the key: dpkg runs as root so this just works
+HELPER="/var/jb/usr/local/libexec/ipatcher-helper"
+if [ -f "$HELPER" ]; then
+    chown root:wheel "$HELPER"
+    chmod 4755 "$HELPER"
+fi
+
+# Re-sign app binary with entitlements (ldid)
+APP="/var/jb/Applications/iPatcher.app/iPatcher"
+ENT="/var/jb/Applications/iPatcher.app/entitlements.plist"
+if [ -f "$APP" ] && command -v ldid &>/dev/null; then
+    if [ -f "$ENT" ]; then
+        ldid -S"$ENT" "$APP"
+    else
+        ldid -S "$APP"
+    fi
+fi
+
+# Refresh icon cache
+uicache -p /var/jb/Applications/iPatcher.app 2>/dev/null || true
+
+exit 0

@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Local agent/editor state
+.claude/
+.vscode/
+.idea/
+
+# Build outputs and packaging artifacts
+/build/
+*.ipa
+*.deb
+*.dylib
+
+# Swift / Xcode caches
+.build/
+DerivedData/
+*.build/
+*.swiftpm/
+Packages/
+
+# Xcode user-specific files
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+xcuserdata/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
