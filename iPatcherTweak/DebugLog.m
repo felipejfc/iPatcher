@@ -3,7 +3,14 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-static NSString *const kIPDebugLogPath = @"/var/jb/var/mobile/Library/iPatcher/tweak.log";
+static NSString *IPDebugLogPath(void) {
+    static NSString *resolved;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        resolved = [@"/var/jb/var/mobile/Library/iPatcher/tweak.log" stringByResolvingSymlinksInPath];
+    });
+    return resolved;
+}
 
 void IPDebugLog(NSString *format, ...) {
     va_list args;
@@ -19,7 +26,7 @@ void IPDebugLog(NSString *format, ...) {
     NSData *data = [line dataUsingEncoding:NSUTF8StringEncoding];
     if (!data.length) return;
 
-    int fd = open(kIPDebugLogPath.fileSystemRepresentation, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int fd = open(IPDebugLogPath().fileSystemRepresentation, O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (fd < 0) return;
     (void)write(fd, data.bytes, data.length);
     close(fd);

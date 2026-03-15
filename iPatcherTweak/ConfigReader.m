@@ -14,7 +14,7 @@
 }
 
 - (NSArray<NSDictionary *> *)patchesForBundleID:(NSString *)bundleID {
-    NSString *dir  = @IP_PATCHES_PATH;
+    NSString *dir  = [@IP_PATCHES_PATH stringByResolvingSymlinksInPath];
     NSString *file = [dir stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"%@.json", bundleID]];
 

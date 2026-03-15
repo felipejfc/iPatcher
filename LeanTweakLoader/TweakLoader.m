@@ -4,8 +4,31 @@
 #import <stdarg.h>
 #import <unistd.h>
 
-static NSString *const kTweakDir = @"/var/jb/Library/MobileSubstrate/DynamicLibraries";
-static NSString *const kLogPath = @"/var/jb/var/mobile/Library/iPatcher/tweakloader.log";
+static NSString *const kTweakDirSymlink = @"/var/jb/Library/MobileSubstrate/DynamicLibraries";
+static NSString *const kLogPathSymlink = @"/var/jb/var/mobile/Library/iPatcher/tweakloader.log";
+
+static NSString *TLResolvePath(NSString *path) {
+    // Resolve /var/jb symlink to real path so sandboxed apps can access it
+    return path.stringByResolvingSymlinksInPath ?: path;
+}
+
+static NSString *TLTweakDir(void) {
+    static NSString *resolved;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        resolved = TLResolvePath(kTweakDirSymlink);
+    });
+    return resolved;
+}
+
+static NSString *TLLogPath(void) {
+    static NSString *resolved;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        resolved = TLResolvePath(kLogPathSymlink);
+    });
+    return resolved;
+}
 
 static void TLLog(NSString *format, ...) {
     va_list args;
@@ -21,7 +44,7 @@ static void TLLog(NSString *format, ...) {
     NSData *data = [line dataUsingEncoding:NSUTF8StringEncoding];
     if (!data.length) return;
 
-    int fd = open(kLogPath.fileSystemRepresentation, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int fd = open(TLLogPath().fileSystemRepresentation, O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (fd < 0) return;
     (void)write(fd, data.bytes, data.length);
     close(fd);
@@ -89,20 +112,21 @@ static void TLLoadTweaks(void) {
         return;
     }
 
-    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:kTweakDir error:nil];
+    NSString *tweakDir = TLTweakDir();
+    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:tweakDir error:nil];
     if (!files.count) {
         TLLog(@"No tweak files found for bundle=%@ exec=%@ path=%@",
               bundleID, executableName, execPath);
         return;
     }
 
-    TLLog(@"Scanning %lu tweak entries for bundle=%@ exec=%@ path=%@",
-          (unsigned long)files.count, bundleID, executableName, execPath);
+    TLLog(@"Scanning %lu tweak entries in %@ for bundle=%@ exec=%@ path=%@",
+          (unsigned long)files.count, tweakDir, bundleID, executableName, execPath);
 
     for (NSString *filename in files) {
         if (![filename.pathExtension isEqualToString:@"plist"]) continue;
 
-        NSString *plistPath = [kTweakDir stringByAppendingPathComponent:filename];
+        NSString *plistPath = [tweakDir stringByAppendingPathComponent:filename];
         NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
         if (![plist isKindOfClass:[NSDictionary class]]) {
             TLLog(@"Skipping unreadable plist %@", plistPath);
@@ -114,11 +138,11 @@ static void TLLoadTweaks(void) {
         }
 
         NSString *baseName = filename.stringByDeletingPathExtension;
-        NSString *dylibPath = [[kTweakDir stringByAppendingPathComponent:baseName]
+        NSString *dylibPath = [[tweakDir stringByAppendingPathComponent:baseName]
             stringByAppendingPathExtension:@"dylib"];
 
-        if (![fm isExecutableFileAtPath:dylibPath]) {
-            TLLog(@"Skipping %@ because dylib is missing or not executable", dylibPath);
+        if (![fm fileExistsAtPath:dylibPath]) {
+            TLLog(@"Skipping %@ because dylib is missing", dylibPath);
             continue;
         }
 
