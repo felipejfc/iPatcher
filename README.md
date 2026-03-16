@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" width="128" height="128" alt="iPatcher icon">
+</p>
+
 # iPatcher
 
 iPatcher is a rootless iOS runtime patcher for `/var/jb`-style environments. It provides a SwiftUI app for defining per-app byte patches, a tweak that applies those patches at process startup, a minimal runtime loader, a privileged helper for install operations, and a CLI for debugging the same workflow over SSH.
