@@ -60,6 +60,21 @@ struct SettingsView: View {
                             info(icon: "app.badge",              title: "Profiles", value: "\(store.profiles.count)")
                         }
 
+                        section("ACTIONS") {
+                            Button { activeAlert = .respring } label: {
+                                HStack {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                        .foregroundColor(IPTheme.accent)
+                                        .frame(width: 24)
+                                    Text("Respring")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(IPTheme.textPrimary)
+                                    Spacer()
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+
                         section("DATA") {
                             Button { activeAlert = .deleteAll } label: {
                                 HStack {
